@@ -6,6 +6,7 @@ The Blender extension package. Blender loads this directory as the add-on; build
 - `blender_manifest.toml`: extension metadata. Its `[build]` table keeps every `CLAUDE.md` out of
   the built zip.
 - `__init__.py`: `register()` / `unregister()`, called when the add-on is enabled / disabled.
+- `scene/`: the read-only armature query and the save/load dirty flag.
 
 ## Conventions
 

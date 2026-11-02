@@ -1,6 +1,9 @@
+from .scene import changes
+
+
 def register():
-    pass
+    changes.register()
 
 
 def unregister():
-    pass
+    changes.unregister()

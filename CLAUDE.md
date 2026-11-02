@@ -10,7 +10,7 @@
 
 1. **Separate code by category within `src/`.** Group source files into meaningful category
    subpackages (by domain, feature, or responsibility) rather than placing everything at the top
-   level of `model_meta/`. When adding new code, put it in the directory that matches its purpose,
+   level of the package. When adding new code, put it in the directory that matches its purpose,
    and create a new category directory when none fits.
 2. **Write a `CLAUDE.md` whenever a new directory is created** — whether it is a direct child of
    `src/` or nested any number of levels below it. Each new directory gets its own
@@ -23,7 +23,7 @@
 
 #### Comments and docstrings
 
-Default: **none**. The assumed reader knows Python, Textual, and this codebase, including every
+Default: **none**. The assumed reader knows Python and this codebase, including every
 directory's `CLAUDE.md`. Write one only when that reader would still be stuck. This applies equally
 to `#` comments, function and class docstrings, and module docstrings, and takes precedence over any
 global comment skill.
@@ -47,8 +47,7 @@ global comment skill.
 - Multi-paragraph module docstrings. Use one line, or nothing.
 - `Args:`/`Returns:` sections that repeat type hints.
 - Dates and authors.
-- New section banners. The existing `# -- name ---` dividers in `tui/screens/` can stay, but don't
-  add banners of any other kind.
+- Section banners of any kind, e.g. `# -- name ---` or `# ====`.
 
 **Existing code:** older comments and docstrings were written before these rules, so don't copy
 their length. Trim one only when you're already editing that code. Don't do standalone cleanups.
@@ -70,16 +69,5 @@ Keep PRs as small as possible by ensuring each branch is purpose-built for a spe
 
 ## General Workflow
 
-> This workflow is intended to fast-track development of many similar models that leverage a similar
-> setup. For example, a game with a range of standard vehicles will need a model for each car, but
-> each model will have the same core components. That being said, this tool CAN benefit one-off model
-> development as well as the checklist is intended to be very comprehensive.
-
-1. User builds a base model in Blender
-2. User starts up Model Meta
-3. User selects (or creates) the spec to use
-4. Model Meta opens a connection to active Blender scene
-5. Model Meta shows a live dashboard with simple display of validation results
-6. User can select a category to see full details
-7. Each full-details page has steps at the bottom for how to fix the issues that can occur
-8. As the user makes changes, validation results live-update
+1. Install this add-on into Blender.
+2. Separately, run Model Meta. See the `model-meta` repo for how it works.

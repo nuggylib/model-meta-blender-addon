@@ -7,6 +7,7 @@ The Blender extension package. Blender loads this directory as the add-on; build
   the built zip.
 - `__init__.py`: `register()` / `unregister()`, called when the add-on is enabled / disabled.
 - `scene/`: the read-only armature query and the save/load dirty flag.
+- `server/`: the TCP listener and protocol messages. Not started in background mode.
 
 ## Conventions
 

@@ -1,0 +1,25 @@
+schema_version = "1.0.0"
+
+id = "model_meta_bridge"
+version = "0.0.1"
+name = "Model Meta Bridge"
+tagline = "Live armature feed for the Model Meta spec checker"
+maintainer = "Armando Vasquez <mando@mcnuggies.dev>"
+type = "add-on"
+
+blender_version_min = "4.2.0"
+
+license = [
+  "SPDX:GPL-3.0-or-later",
+]
+
+[permissions]
+network = "Answers Model Meta scene queries on localhost"
+
+[build]
+paths_exclude_pattern = [
+  "__pycache__/",
+  "/.git/",
+  "/*.zip",
+  "CLAUDE.md",
+]

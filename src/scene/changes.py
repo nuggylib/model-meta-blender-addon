@@ -1,18 +1,18 @@
 import bpy
 from bpy.app.handlers import persistent
 
-_dirty = False
+
+class _State:
+    dirty = False
 
 
 @persistent
 def _mark_dirty(_filepath):
-    global _dirty
-    _dirty = True
+    _State.dirty = True
 
 
 def take_dirty():
-    global _dirty
-    was_dirty, _dirty = _dirty, False
+    was_dirty, _State.dirty = _State.dirty, False
     return was_dirty
 
 

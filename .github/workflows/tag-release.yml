@@ -13,10 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          fetch-depth: 0
           fetch-tags: true
 
       - name: Tag the manifest version
+        env:
+          BEFORE: ${{ github.event.before }}
         run: |
+          if [ -z "$(git diff --name-only "$BEFORE" HEAD -- src ':!src/*.md')" ]; then
+            echo "No functional changes under src/; nothing to tag."
+            exit 0
+          fi
           version=$(sed -n 's/^version = "\(.*\)"$/\1/p' src/blender_manifest.toml)
           if [ -z "$version" ]; then
             echo "::error::no version in src/blender_manifest.toml"

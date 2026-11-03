@@ -4,9 +4,11 @@ GitHub configuration: the PR template and CI workflows.
 
 - `pull_request_template.md`: default PR body. GitHub only applies it from `main`.
 - `workflows/version-check.yml`: on PRs into `main`, fails unless the manifest `version` is higher
-  than `main`'s and `v<version>` isn't tagged. See `.claude/skills/version-bumping/SKILL.md`.
+  than `main`'s and `v<version>` isn't tagged. Passes without a bump when nothing under `src/` changed
+  except `*.md` files. See `.claude/skills/version-bumping/SKILL.md`.
 - `workflows/tag-release.yml`: on each push to `main` (a squash merge), tags the commit
-  `v<manifest version>`. Fails if that tag exists.
+  `v<manifest version>`. Fails if that tag exists. Skips when nothing under `src/` changed except
+  `*.md` files.
 - `workflows/qa_signoff.yml`: fails a PR until the `- [x] **Author:**` box in its body is ticked.
   Brought over from model-meta.
 

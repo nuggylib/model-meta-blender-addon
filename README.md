@@ -1,6 +1,9 @@
-# `model-meta-blender-addon`
+# `model-meta-bridge`
 
-This is the Blender addon partner to the `model-meta` CLI tool.
+This is a bridge application which surfaces basic data about a 
+Blender scene file when a file is loaded and on save. This tool 
+is intended for use with `model-meta`, but it's entirely possible 
+to leverage the queries for your own needs.
 
 ## Functionality
 

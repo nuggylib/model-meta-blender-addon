@@ -3,7 +3,7 @@ from typing import ClassVar
 
 import bpy
 
-from ..scene import armatures, changes
+from ..scene import armatures, blend_file, changes
 from . import protocol
 
 HOST = "127.0.0.1"
@@ -87,12 +87,14 @@ def _receive(client):
         return
     *lines, client.inbox = (client.inbox + data).split(b"\n")
     for line in lines:
-        problem = protocol.parse_request(line)
-        if problem is None:
+        kind, problem = protocol.parse_request(line)
+        if problem is not None:
+            client.outbox += protocol.error(problem)
+        elif kind == "get_filepath":
+            client.outbox += protocol.filepath(blend_file.blend_filepath())
+        else:
             client.subscribed = client.pending = True
             client.last_sent = None
-        else:
-            client.outbox += protocol.error(problem)
 
 
 def _answer_pending():

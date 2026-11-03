@@ -27,6 +27,9 @@ else Spotlight (newest copy), else `blender` on `PATH`, and checks `blender_vers
 - `{"protocol":1,"type":"subscribe_armatures"}`: answered with
   `{"protocol":1,"status":"success","result":{"armatures":[...]}}` on subscribe and after a save/load
   that changes the list from the last one sent on that connection.
+- If a save/load leaves a subscriber on a different file than the one it subscribed on, it gets the
+  `get_filepath` reply for the new file instead of names, and its subscription ends. Subscribe again
+  once the file is confirmed.
 - Error: `{"protocol":1,"status":"error","message":"..."}`. Connection stays open. Messages: `busy`
   (interface locked; sent once, names follow when it unlocks), `invalid JSON`,
   `unsupported protocol: <v>`, `unknown type: <t>`, `query failed: <detail>`.

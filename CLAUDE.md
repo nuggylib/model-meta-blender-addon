@@ -3,6 +3,7 @@
 ## Skills
 * Before writing a new skill, read `.claude/skills/skill-writing/SKILL.md`
 * Before creating a new branch, read `.claude/skills/branch-naming/SKILL.md`
+* Right after creating a new branch, read `.claude/skills/version-bumping/SKILL.md`
 * Before committing changes, read `.claude/skills/committing/SKILL.md`
 * Before running tests locally, read `.claude/skills/running-tests/SKILL.md`
 * Before choosing or recommending a resource or example, read `.claude/skills/sourcing-resources/SKILL.md`

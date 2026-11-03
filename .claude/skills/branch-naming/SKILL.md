@@ -24,6 +24,7 @@ Use this skill whenever you are about to create a new git branch in this repo.
 3. Check the name isn't taken: `git branch -a --list "*<developer_name>/<ticket_number>/<feature_or_task>"`.
 4. Create the branch off an up-to-date `main` unless the developer names another base:
    `git fetch origin main && git switch -c <branch_name> origin/main`.
+5. Give the branch a new add-on version with `.claude/skills/version-bumping/SKILL.md`.
 
 ## Verification process
 - `git branch --show-current` prints the new name.

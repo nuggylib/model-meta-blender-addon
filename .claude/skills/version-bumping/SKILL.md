@@ -31,7 +31,9 @@ unless the developer asks for another bump.
 5. Set `version = "<new>"` in `src/blender_manifest.toml`. Change nothing else.
 6. Commit it on its own, following `.claude/skills/committing/SKILL.md`:
    `chore: bump extension version to <new>`.
-7. Don't create a `v<new>` tag. When the PR is squash-merged, `.github/workflows/tag-release.yml` tags
+7. On the PR, `.github/workflows/version-check.yml` fails unless `<new>` is higher than `main`'s
+   version and not yet tagged.
+8. Don't create a `v<new>` tag. When the PR is squash-merged, `.github/workflows/tag-release.yml` tags
    the merge commit on `main`. It fails if `v<new>` already exists.
 
 ## Verification process

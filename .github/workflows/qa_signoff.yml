@@ -1,0 +1,30 @@
+name: QA Sign-off
+
+on:
+  pull_request:
+    # Ticking the sign-off box edits the PR body, which the default activity types don't fire on.
+    types: [opened, edited, synchronize, reopened]
+
+concurrency:
+  group: qa-signoff-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  qa-signoff:
+    name: QA Sign-off
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify the Author QA sign-off box is checked
+        env:
+          # Untrusted input: interpolating it into `run:` would allow shell injection.
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          if printf '%s' "$PR_BODY" | grep -qiE '^[[:space:]]*- \[x\] \*\*Author:\*\*'; then
+            echo "Author QA sign-off is checked."
+          else
+            echo "::error::Author QA sign-off box is unchecked. Run the QA Steps in the PR description, then tick the box."
+            exit 1
+          fi

@@ -3,7 +3,7 @@ from typing import ClassVar
 
 import bpy
 
-from ..scene import armatures, changes
+from ..scene import armatures, blend_file, changes
 from . import protocol
 
 HOST = "127.0.0.1"
@@ -17,6 +17,7 @@ class _Client:
         self.inbox = b""
         self.outbox = b""
         self.subscribed = False
+        self.subscribed_filepath = None
         self.pending = False
         self.busy_sent = False
         self.last_sent = None
@@ -56,8 +57,7 @@ def _tick():
     for client in list(_State.clients):
         _receive(client)
     if changes.take_dirty():
-        for client in _State.clients:
-            client.pending = client.pending or client.subscribed
+        _file_changed()
     _answer_pending()
     for client in list(_State.clients):
         _flush(client)
@@ -87,12 +87,27 @@ def _receive(client):
         return
     *lines, client.inbox = (client.inbox + data).split(b"\n")
     for line in lines:
-        problem = protocol.parse_request(line)
-        if problem is None:
-            client.subscribed = client.pending = True
-            client.last_sent = None
-        else:
+        kind, problem = protocol.parse_request(line)
+        if problem is not None:
             client.outbox += protocol.error(problem)
+        elif kind == "get_filepath":
+            client.outbox += protocol.filepath(blend_file.blend_filepath())
+        else:
+            client.subscribed = client.pending = True
+            client.subscribed_filepath = blend_file.blend_filepath()
+            client.last_sent = None
+
+
+def _file_changed():
+    path = blend_file.blend_filepath()
+    for client in _State.clients:
+        if not client.subscribed:
+            continue
+        if path == client.subscribed_filepath:
+            client.pending = True
+        else:
+            client.outbox += protocol.filepath(path)
+            client.subscribed = client.pending = client.busy_sent = False
 
 
 def _answer_pending():

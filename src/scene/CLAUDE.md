@@ -4,5 +4,7 @@ Reads Blender's scene and tracks when it may have changed. Read-only: nothing he
 
 - `armatures.py`: `armature_names()` lists `ARMATURE` objects linked to the active scene
   (`bpy.context.scene.objects`, not `bpy.data.objects`, so objects outside the scene are left out).
+- `blend_file.py`: `blend_filepath()` returns the open `.blend` file's absolute path
+  (`bpy.data.filepath`), or `None` if it has never been saved.
 - `changes.py`: `save_post` / `load_post` handlers that only set a dirty flag. `take_dirty()` returns
   and clears it. Handlers are `@persistent` so they survive file loads.

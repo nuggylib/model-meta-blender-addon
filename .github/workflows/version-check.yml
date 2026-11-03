@@ -20,6 +20,11 @@ jobs:
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
+          # Skipped in-job, not via `paths:`: a path-filtered required check stays pending forever.
+          if [ -z "$(git diff --name-only "origin/$BASE_REF...HEAD" -- src ':!src/*.md')" ]; then
+            echo "No functional changes under src/; no version bump needed."
+            exit 0
+          fi
           manifest_version() {
             sed -n 's/^version = "\(.*\)"$/\1/p'
           }

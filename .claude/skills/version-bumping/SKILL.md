@@ -10,6 +10,9 @@ Use this skill right after creating a new branch (see `.claude/skills/branch-nam
 its first commit. Each branch gets exactly one bump. Later changes on the same branch keep that version
 unless the developer asks for another bump.
 
+Skip this skill when the branch won't change anything under `src/` other than `*.md` files (e.g. a
+README or CI-only change). Both workflows pass such branches without a bump or a tag.
+
 ## Pre-requisites
 - The new branch is checked out and was created off an up-to-date `origin/main`.
 - `<current>`: the `version` in `src/blender_manifest.toml` on `origin/main`:

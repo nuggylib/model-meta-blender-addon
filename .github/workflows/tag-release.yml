@@ -1,0 +1,34 @@
+name: Tag release
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-tags: true
+
+      - name: Tag the manifest version
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' src/blender_manifest.toml)
+          if [ -z "$version" ]; then
+            echo "::error::no version in src/blender_manifest.toml"
+            exit 1
+          fi
+          tag="v$version"
+          if git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+            echo "::error::$tag already exists; bump the version in src/blender_manifest.toml"
+            exit 1
+          fi
+          # {user.id}+{user.login}@users.noreply.github.com: https://github.com/actions/checkout#push-a-commit-using-the-built-in-token
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "$tag"
+          git push origin "$tag"

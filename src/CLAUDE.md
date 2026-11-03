@@ -1,7 +1,8 @@
 # `src/`
 
 The Blender extension package. Blender loads this directory as the add-on; build it with
-`blender --command extension build --source-dir src`.
+`./build.sh` from the repo root, which writes the zip to `build/`. It finds Blender via `$BLENDER`,
+else Spotlight (newest copy), else `blender` on `PATH`, and checks `blender_version_min`.
 
 - `blender_manifest.toml`: extension metadata. Its `[build]` table keeps every `CLAUDE.md` out of
   the built zip.

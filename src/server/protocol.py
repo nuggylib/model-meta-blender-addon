@@ -3,15 +3,8 @@ import json
 VERSION = 1
 
 
-REQUEST_TYPES = ("get_filepath", "subscribe_armatures")
-
-
-def filepath(path):
-    return _encode({"status": "success", "result": {"filepath": path}})
-
-
-def success(names):
-    return _encode({"status": "success", "result": {"armatures": names}})
+def success(result):
+    return _encode({"status": "success", "result": result})
 
 
 def error(message):
@@ -23,8 +16,8 @@ def _encode(body):
     return (line + "\n").encode()
 
 
-def parse_request(line):
-    """Return (type, None) for a valid request, else (None, the error message to send)."""
+def parse_request(line, known_types):
+    """Return (the request dict, None) if valid, else (None, the error message to send)."""
     try:
         request = json.loads(line)
     except ValueError:
@@ -35,6 +28,6 @@ def parse_request(line):
     if isinstance(version, bool) or version != VERSION:  # bool is an int
         return None, f"unsupported protocol: {json.dumps(version)}"
     kind = request.get("type")
-    if kind not in REQUEST_TYPES:
+    if not isinstance(kind, str) or kind not in known_types:
         return None, f"unknown type: {json.dumps(kind)}"
-    return kind, None
+    return request, None

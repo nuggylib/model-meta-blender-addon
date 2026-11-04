@@ -59,9 +59,8 @@ All mesh data is the authored mesh (`obj.data`), never the modifier-evaluated on
   group, `at_weight` those whose weight equals `weight` exactly (compared as float32, Blender's storage).
   A mesh passes when both equal `vertices`. Other groups a vertex belongs to are ignored. A missing mesh or group is
   `{"mesh","vertex_group","error":"no mesh"|"no vertex group"}`.
-- `get_mesh_textures` with `"meshes":[{"mesh":"...","inputs":["Base Color",...]}]` → key
-  `mesh_textures`, one item per entry, in order: `{"mesh","materials":[{"material","inputs"}]}`, one
-  material per slot (`material` is `null` for an empty slot). `inputs` maps each requested socket
-  name on the shader feeding the material output's Surface to `true` (an image texture is upstream
-  through unmuted links), `false`, or `null` (no such socket, no shader, or no material). A missing
-  mesh is `{"mesh","error":"no mesh"}`.
+- `get_mesh_textures` with `"meshes":[{"mesh":"...","maps":["albedo","orm",...]}]` → key
+  `mesh_textures`, one item per entry, in order: `{"mesh","maps":{"albedo":<bool>,...}}`. A map is
+  `true` when an Image Texture node in any of the mesh's slot materials holds an image saved to
+  disk whose filename ends with `<mesh>_<map>.png`, e.g. `wheel_hub.front.L_albedo.png`. Wiring is
+  not checked. A missing mesh is `{"mesh","error":"no mesh"}`.

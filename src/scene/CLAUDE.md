@@ -17,5 +17,7 @@ Reads Blender's scene and tracks when it may have changed. Read-only: nothing he
     section is what governs modifiers.
   - `weight_report` loops over every vertex in Python (`foreach_get` can't read deform weights), so
     it is the slow one. It only looks at the requested group.
-  - `texture_report` walks links upstream from each requested socket on the Surface shader of
-    `get_output_node("ALL")`, skipping muted links. It doesn't descend into node groups.
+  - `texture_report` checks a map's presence, not how it's wired: baked images usually sit in
+    unlinked nodes. "Saved" means `source == "FILE"` and the resolved path is a file on disk, so an
+    unsaved bake (a `GENERATED` image) fails. It reads each material's top-level node tree only,
+    not node groups.

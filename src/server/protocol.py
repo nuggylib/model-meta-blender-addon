@@ -56,14 +56,14 @@ def weight_targets_problem(request):
 
 def texture_targets_problem(request):
     def valid(target):
-        inputs = target.get("inputs")
+        maps = target.get("maps")
         return (
             isinstance(target.get("mesh"), str)
-            and isinstance(inputs, list)
-            and all(isinstance(name, str) for name in inputs)
+            and isinstance(maps, list)
+            and all(isinstance(name, str) for name in maps)
         )
 
-    return _targets_problem(request, valid, "`mesh` and `inputs`")
+    return _targets_problem(request, valid, "`mesh` and `maps`")
 
 
 def _targets_problem(request, valid, fields):

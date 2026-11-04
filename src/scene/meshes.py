@@ -1,3 +1,4 @@
+import os
 import struct
 
 import bpy
@@ -47,15 +48,17 @@ def weight_report(target):
 
 
 def texture_report(target):
-    name, inputs = target["mesh"], target["inputs"]
+    name, maps = target["mesh"], target["maps"]
     obj = _mesh_object(name)
     if obj is None:
         return {"mesh": name, "error": "no mesh"}
+    files = _saved_image_files(obj)
     return {
         "mesh": name,
-        "materials": [
-            _material_inputs(slot.material, inputs) for slot in obj.material_slots
-        ],
+        "maps": {
+            texture_map: any(f.endswith(f"{name}_{texture_map}.png") for f in files)
+            for texture_map in maps
+        },
     }
 
 
@@ -64,34 +67,17 @@ def _mesh_object(name):
     return obj if obj is not None and obj.type == "MESH" else None
 
 
-def _material_inputs(material, inputs):
-    shader = _surface_shader(material)
-    found = {}
-    for name in inputs:
-        socket = None if shader is None else shader.inputs.get(name)
-        found[name] = None if socket is None else _has_image(socket, set())
-    return {"material": None if material is None else material.name, "inputs": found}
-
-
-def _surface_shader(material):
-    if material is None or material.node_tree is None or not material.use_nodes:
-        return None
-    output = material.node_tree.get_output_node("ALL")
-    surface = None if output is None else output.inputs.get("Surface")
-    if surface is None:
-        return None
-    links = [link for link in surface.links if not link.is_muted]
-    return links[0].from_node if links else None
-
-
-def _has_image(socket, seen):
-    for link in socket.links:
-        node = link.from_node
-        if link.is_muted or node.name in seen:
+def _saved_image_files(obj):
+    files = set()
+    for slot in obj.material_slots:
+        material = slot.material
+        if material is None or material.node_tree is None:
             continue
-        seen.add(node.name)
-        if node.type == "TEX_IMAGE" and node.image is not None:
-            return True
-        if any(_has_image(upstream, seen) for upstream in node.inputs):
-            return True
-    return False
+        for node in material.node_tree.nodes:
+            image = node.image if node.type == "TEX_IMAGE" else None
+            if image is None or image.source != "FILE":
+                continue
+            path = bpy.path.abspath(image.filepath, library=image.library)
+            if os.path.isfile(path):
+                files.add(os.path.basename(path))
+    return files

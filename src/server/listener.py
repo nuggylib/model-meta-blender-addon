@@ -3,8 +3,8 @@ from typing import ClassVar
 
 import bpy
 
-from ..scene import armatures, blend_file, changes
-from . import protocol
+from ..scene import armatures, blend_file, changes, meshes
+from . import pages, protocol
 
 HOST = "127.0.0.1"
 PORT = 7417
@@ -12,6 +12,29 @@ TICK_SECONDS = 0.1
 
 _SUBSCRIPTIONS = {
     "subscribe_armatures": lambda: {"armatures": armatures.armature_names()},
+    "subscribe_meshes": lambda: {"meshes_revision": changes.revision()},
+}
+
+
+def _meshes_page(_request):
+    objects = meshes.mesh_objects()
+    return "meshes", len(objects), lambda i: meshes.summary(objects[i])
+
+
+def _weights_page(request):
+    targets = request["meshes"]
+    return "mesh_weights", len(targets), lambda i: meshes.weight_report(targets[i])
+
+
+def _textures_page(request):
+    targets = request["meshes"]
+    return "mesh_textures", len(targets), lambda i: meshes.texture_report(targets[i])
+
+
+_PAGED = {
+    "get_meshes": (None, _meshes_page),
+    "get_mesh_weights": (protocol.weight_targets_problem, _weights_page),
+    "get_mesh_textures": (protocol.texture_targets_problem, _textures_page),
 }
 
 
@@ -23,12 +46,19 @@ class _Subscription:
         self.last_sent = None
 
 
+class _Queued:
+    def __init__(self, request):
+        self.request = request
+        self.busy_sent = False
+
+
 class _Client:
     def __init__(self, sock):
         self.sock = sock
         self.inbox = b""
         self.outbox = b""
         self.subscriptions: dict[str, _Subscription] = {}
+        self.queued: list[_Queued] = []
 
 
 class _State:
@@ -110,9 +140,21 @@ def _subscribe(client, request):
     client.subscriptions[request["type"]] = _Subscription(blend_file.blend_filepath())
 
 
+def _queue(client, request):
+    targets_problem, _ = _PAGED[request["type"]]
+    problem = protocol.paging_problem(request)
+    if problem is None and targets_problem is not None:
+        problem = targets_problem(request)
+    if problem is not None:
+        client.outbox += protocol.error(problem)
+    else:
+        client.queued.append(_Queued(request))
+
+
 _HANDLERS = {
     "get_filepath": _get_filepath,
     **{kind: _subscribe for kind in _SUBSCRIPTIONS},
+    **{kind: _queue for kind in _PAGED},
 }
 
 
@@ -137,10 +179,11 @@ def _answer_pending():
         for kind, sub in client.subscriptions.items()
         if sub.pending
     ]
-    if not waiting:
+    queued = [(client, item) for client in _State.clients for item in client.queued]
+    if not waiting and not queued:
         return
     if bpy.context.window_manager.is_interface_locked:
-        _send_busy(waiting)
+        _send_busy([*((client, sub) for client, _kind, sub in waiting), *queued])
         return
     answers = {}
     for client, kind, sub in waiting:
@@ -153,16 +196,20 @@ def _answer_pending():
             client.outbox += protocol.success(result)
             sub.last_sent = result
         sub.pending = sub.busy_sent = False
+    for client, item in queued:
+        client.outbox += _answer(item.request)
+    for client in _State.clients:
+        client.queued.clear()
 
 
 def _send_busy(waiting):
-    # "busy" names no subscription, so a client hears it once however many are waiting.
+    # "busy" names no request, so a client hears it once however many are waiting.
     told = set()
-    for client, _kind, sub in waiting:
-        if not sub.busy_sent and client not in told:
+    for client, item in waiting:
+        if not item.busy_sent and client not in told:
             client.outbox += protocol.error("busy")
             told.add(client)
-        sub.busy_sent = True
+        item.busy_sent = True
 
 
 def _query(kind):
@@ -170,6 +217,26 @@ def _query(kind):
         return _SUBSCRIPTIONS[kind](), None
     except Exception as exc:  # noqa: BLE001 - sent to the client as "query failed"
         return None, f"query failed: {exc}"
+
+
+def _answer(request):
+    revision = request["revision"]
+    if revision != changes.revision():
+        return protocol.error("stale")
+    _, page_of = _PAGED[request["type"]]
+    try:
+        key, count, build = page_of(request)
+        items, next_cursor = pages.page(count, build, request["cursor"])
+    except Exception as exc:  # noqa: BLE001 - sent to the client as "query failed"
+        return protocol.error(f"query failed: {exc}")
+    return protocol.success(
+        {
+            "revision": revision,
+            key: items,
+            "has_more": next_cursor is not None,
+            "next_cursor": next_cursor,
+        }
+    )
 
 
 def _flush(client):

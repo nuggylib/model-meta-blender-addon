@@ -7,7 +7,8 @@ else Spotlight (newest copy), else `blender` on `PATH`, and checks `blender_vers
 - `blender_manifest.toml`: extension metadata. Its `[build]` table keeps every `CLAUDE.md` out of
   the built zip.
 - `__init__.py`: `register()` / `unregister()`, called when the add-on is enabled / disabled.
-- `scene/`: the read-only armature and file path queries, and the save/load dirty flag.
+- `scene/`: the read-only armature, mesh and file path queries, and the save/load dirty flag and
+  revision.
 - `server/`: the TCP listener and protocol messages. Not started in background mode.
 
 ## Conventions
@@ -27,9 +28,40 @@ else Spotlight (newest copy), else `blender` on `PATH`, and checks `blender_vers
 - `{"protocol":1,"type":"subscribe_armatures"}`: answered with
   `{"protocol":1,"status":"success","result":{"armatures":[...]}}` on subscribe and after a save/load
   that changes the list from the last one sent on that connection.
+- `{"protocol":1,"type":"subscribe_meshes"}`: answered with
+  `{"protocol":1,"status":"success","result":{"meshes_revision":<n>}}` on subscribe and after every
+  save/load. Pass `<n>` as `revision` to the paged requests below.
 - If a save/load leaves a subscriber on a different file than the one it subscribed on, it gets the
-  `get_filepath` reply for the new file instead of names, and its subscription ends. Subscribe again
-  once the file is confirmed.
+  `get_filepath` reply for the new file instead of results, and every subscription it made on the
+  old file ends. Subscribe again once the file is confirmed.
 - Error: `{"protocol":1,"status":"error","message":"..."}`. Connection stays open. Messages: `busy`
-  (interface locked; sent once, names follow when it unlocks), `invalid JSON`,
-  `unsupported protocol: <v>`, `unknown type: <t>`, `query failed: <detail>`.
+  (interface locked; sent once, results follow when it unlocks), `invalid JSON`,
+  `unsupported protocol: <v>`, `unknown type: <t>`, `invalid request: <detail>`, `stale`,
+  `query failed: <detail>`.
+
+### Paged requests
+
+Every paged request carries `"revision"` (from `meshes_revision`) and `"cursor"` (`0` for the first
+page), both whole numbers. The reply is
+`{"protocol":1,"status":"success","result":{"revision":<n>,"<key>":[...],"has_more":<bool>,"next_cursor":<int or null>}}`.
+While `has_more` is true, send the same request again with `cursor` set to `next_cursor`. A page holds
+as many items as fit in about 32 KB, and at least one. If a save/load happened since `revision`, the
+reply is the `stale` error: wait for the next `meshes_revision` and start again from cursor `0`.
+
+All mesh data is the authored mesh (`obj.data`), never the modifier-evaluated one. Meshes are
+`MESH` objects in the active scene, looked up by object name.
+
+- `get_meshes` → key `meshes`: every scene mesh, sorted by name, as
+  `{"name":"...","vertex_groups":[...],"material_slots":[...]}`. A slot with no material is `""`.
+- `get_mesh_weights` with `"meshes":[{"mesh":"...","vertex_group":"...","weight":<number>}]` →
+  key `mesh_weights`, one item per entry, in order:
+  `{"mesh","vertex_group","vertices","assigned","at_weight"}`. `assigned` counts vertices in the
+  group, `at_weight` those whose weight equals `weight` exactly (compared as float32, Blender's storage).
+  A mesh passes when both equal `vertices`. Other groups a vertex belongs to are ignored. A missing mesh or group is
+  `{"mesh","vertex_group","error":"no mesh"|"no vertex group"}`.
+- `get_mesh_textures` with `"meshes":[{"mesh":"...","inputs":["Base Color",...]}]` → key
+  `mesh_textures`, one item per entry, in order: `{"mesh","materials":[{"material","inputs"}]}`, one
+  material per slot (`material` is `null` for an empty slot). `inputs` maps each requested socket
+  name on the shader feeding the material output's Surface to `true` (an image texture is upstream
+  through unmuted links), `false`, or `null` (no such socket, no shader, or no material). A missing
+  mesh is `{"mesh","error":"no mesh"}`.

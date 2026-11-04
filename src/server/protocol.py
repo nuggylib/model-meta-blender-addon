@@ -31,3 +31,45 @@ def parse_request(line, known_types):
     if not isinstance(kind, str) or kind not in known_types:
         return None, f"unknown type: {json.dumps(kind)}"
     return request, None
+
+
+def paging_problem(request):
+    for key in ("revision", "cursor"):
+        value = request.get(key)
+        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
+            return f"invalid request: `{key}` is not a whole number"
+    return None
+
+
+def weight_targets_problem(request):
+    def valid(target):
+        weight = target.get("weight")
+        return (
+            isinstance(target.get("mesh"), str)
+            and isinstance(target.get("vertex_group"), str)
+            and isinstance(weight, (int, float))
+            and not isinstance(weight, bool)
+        )
+
+    return _targets_problem(request, valid, "`mesh`, `vertex_group` and `weight`")
+
+
+def texture_targets_problem(request):
+    def valid(target):
+        inputs = target.get("inputs")
+        return (
+            isinstance(target.get("mesh"), str)
+            and isinstance(inputs, list)
+            and all(isinstance(name, str) for name in inputs)
+        )
+
+    return _targets_problem(request, valid, "`mesh` and `inputs`")
+
+
+def _targets_problem(request, valid, fields):
+    targets = request.get("meshes")
+    if not isinstance(targets, list):
+        return "invalid request: `meshes` is not a list"
+    if not all(isinstance(target, dict) and valid(target) for target in targets):
+        return f"invalid request: every entry in `meshes` needs {fields}"
+    return None

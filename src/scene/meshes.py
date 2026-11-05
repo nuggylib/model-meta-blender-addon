@@ -86,13 +86,17 @@ def _uv_map_report(layer, starts, totals):
     coords = array("f", [0]) * (2 * len(layer.uv))
     layer.uv.foreach_get("vector", coords)
     us, vs = coords[0::2], coords[1::2]
-    zero_area = unit_square = 0
+    zero_area = stretched = 0
     for start, total in zip(starts, totals, strict=True):
         u, v = us[start : start + total], vs[start : start + total]
         doubled_area = sum(u[i - 1] * v[i] - u[i] * v[i - 1] for i in range(total))
         zero_area += doubled_area == 0
-        unit_square += min(u) == 0 and max(u) == 1 and min(v) == 0 and max(v) == 1
-    return {"name": layer.name, "zero_area": zero_area, "unit_square": unit_square}
+        stretched += min(u) == 0 and max(u) == 1 and min(v) == 0 and max(v) == 1
+    return {
+        "name": layer.name,
+        "zero_area": zero_area,
+        "possible_stretched_faces": stretched,
+    }
 
 
 def _mesh_object(name):

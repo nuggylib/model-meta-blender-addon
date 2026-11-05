@@ -65,9 +65,11 @@ All mesh data is the authored mesh (`obj.data`), never the modifier-evaluated on
   disk whose filename ends with `<mesh>_<map>.png`, e.g. `wheel_hub.front.L_albedo.png`. Wiring is
   not checked. A missing mesh is `{"mesh","error":"no mesh"}`.
 - `get_mesh_uvs` with `"meshes":[{"mesh":"..."}]` → key `mesh_uvs`, one item per entry, in order:
-  `{"mesh","faces","uv_maps":[{"name","zero_area","unit_square"},...]}`, one entry per UV map in
-  Blender's order (`[]` if the mesh has none). `zero_area` counts faces whose UVs enclose exactly no
-  area (extruding copies the source UVs, so the new faces get these). `unit_square` counts faces
-  whose UVs span exactly 0 to 1 on both axes (what Add UV Map gives a mesh that had none). A map
-  passes when both are `0`. Heuristic: a primitive's generated UVs pass until edited, e.g. a
-  never-unwrapped cube, and a plane fails. A face with no area in 3D counts as `zero_area` too. A missing mesh is `{"mesh","error":"no mesh"}`.
+  `{"mesh","faces","uv_maps":[{"name","zero_area","possible_stretched_faces"},...]}`, one entry per
+  UV map in Blender's order (`[]` if the mesh has none). `zero_area` counts faces whose UVs enclose
+  exactly no area (extruding copies the source UVs, so the new faces get these). A face with no area
+  in 3D counts too. `possible_stretched_faces` counts faces whose UVs span exactly 0 to 1 on both
+  axes, so each shows the whole texture (what Add UV Map gives a mesh that had none). It is only a
+  "possible": a plane's real UVs span the same square. A primitive's generated UVs show neither
+  until edited, so a never-unwrapped cube looks unwrapped. A missing mesh is
+  `{"mesh","error":"no mesh"}`.

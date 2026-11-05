@@ -1,5 +1,6 @@
 import os
 import struct
+from array import array
 
 import bpy
 
@@ -60,6 +61,38 @@ def texture_report(target):
             for texture_map in maps
         },
     }
+
+
+def uv_report(target):
+    name = target["mesh"]
+    obj = _mesh_object(name)
+    if obj is None:
+        return {"mesh": name, "error": "no mesh"}
+    polygons = obj.data.polygons
+    starts = array("i", [0]) * len(polygons)
+    totals = array("i", [0]) * len(polygons)
+    polygons.foreach_get("loop_start", starts)
+    polygons.foreach_get("loop_total", totals)
+    return {
+        "mesh": name,
+        "faces": len(polygons),
+        "uv_maps": [
+            _uv_map_report(layer, starts, totals) for layer in obj.data.uv_layers
+        ],
+    }
+
+
+def _uv_map_report(layer, starts, totals):
+    coords = array("f", [0]) * (2 * len(layer.uv))
+    layer.uv.foreach_get("vector", coords)
+    us, vs = coords[0::2], coords[1::2]
+    zero_area = unit_square = 0
+    for start, total in zip(starts, totals, strict=True):
+        u, v = us[start : start + total], vs[start : start + total]
+        doubled_area = sum(u[i - 1] * v[i] - u[i] * v[i - 1] for i in range(total))
+        zero_area += doubled_area == 0
+        unit_square += min(u) == 0 and max(u) == 1 and min(v) == 0 and max(v) == 1
+    return {"name": layer.name, "zero_area": zero_area, "unit_square": unit_square}
 
 
 def _mesh_object(name):

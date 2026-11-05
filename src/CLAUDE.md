@@ -64,3 +64,10 @@ All mesh data is the authored mesh (`obj.data`), never the modifier-evaluated on
   `true` when an Image Texture node in any of the mesh's slot materials holds an image saved to
   disk whose filename ends with `<mesh>_<map>.png`, e.g. `wheel_hub.front.L_albedo.png`. Wiring is
   not checked. A missing mesh is `{"mesh","error":"no mesh"}`.
+- `get_mesh_uvs` with `"meshes":[{"mesh":"..."}]` → key `mesh_uvs`, one item per entry, in order:
+  `{"mesh","faces","uv_maps":[{"name","zero_area","unit_square"},...]}`, one entry per UV map in
+  Blender's order (`[]` if the mesh has none). `zero_area` counts faces whose UVs enclose exactly no
+  area (extruding copies the source UVs, so the new faces get these). `unit_square` counts faces
+  whose UVs span exactly 0 to 1 on both axes (what Add UV Map gives a mesh that had none). A map
+  passes when both are `0`. Heuristic: a primitive's generated UVs pass until edited, e.g. a
+  never-unwrapped cube, and a plane fails. A face with no area in 3D counts as `zero_area` too. A missing mesh is `{"mesh","error":"no mesh"}`.

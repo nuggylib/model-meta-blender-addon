@@ -11,12 +11,14 @@ Reads Blender's scene and tracks when it may have changed. Read-only: nothing he
   Handlers are `@persistent` so they survive file loads.
 - `meshes.py`: the mesh role queries behind the paged requests in `src/CLAUDE.md`.
   `mesh_objects()` lists scene `MESH` objects sorted by name; `summary(obj)`,
-  `weight_report(target)` and `texture_report(target)` build one item each. Take a target that has
+  `weight_report(target)`, `texture_report(target)` and `uv_report(target)` build one item each. Take a target that has
   already been validated by `server.protocol`.
   - Always reads the authored mesh (`obj.data`), never an evaluated one: the spec's `modifiers`
     section is what governs modifiers.
   - `weight_report` loops over every vertex in Python (`foreach_get` can't read deform weights), so
     it is the slow one. It only looks at the requested group.
+  - `uv_report` reads UVs with `foreach_get` but loops over every face corner in Python. Area and
+    bounds are compared exactly, with no tolerance: forgotten-unwrap UVs are copied, not computed.
   - `texture_report` checks a map's presence, not how it's wired: baked images usually sit in
     unlinked nodes. "Saved" means `source == "FILE"` and the resolved path is a file on disk, so an
     unsaved bake (a `GENERATED` image) fails. It reads each material's top-level node tree only,

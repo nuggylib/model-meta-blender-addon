@@ -17,8 +17,8 @@ Reads Blender's scene and tracks when it may have changed. Read-only: nothing he
     section is what governs modifiers.
   - `weight_report` loops over every vertex in Python (`foreach_get` can't read deform weights), so
     it is the slow one. It only looks at the requested group.
-  - `uv_report` reads UVs with `foreach_get` but loops over every face corner in Python. Area and
-    bounds are compared exactly, with no tolerance: forgotten-unwrap UVs are copied, not computed.
+  - `uv_report` reads UVs with `foreach_get` but loops over every face corner in Python. Area is
+    compared exactly, with no tolerance: forgotten-unwrap UVs are copied, not computed.
     It never reads the edit-mode BMesh; a mesh in edit mode gets the `in edit mode` error instead.
   - `texture_report` checks a map's presence, not how it's wired: baked images usually sit in
     unlinked nodes. "Saved" means `source == "FILE"` and the resolved path is a file on disk, so an

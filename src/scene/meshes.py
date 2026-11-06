@@ -68,6 +68,8 @@ def uv_report(target):
     obj = _mesh_object(name)
     if obj is None:
         return {"mesh": name, "error": "no mesh"}
+    if obj.mode == "EDIT":  # Blender empties the mesh's UV arrays until edit mode ends.
+        return {"mesh": name, "error": "in edit mode"}
     polygons = obj.data.polygons
     starts = array("i", [0]) * len(polygons)
     totals = array("i", [0]) * len(polygons)

@@ -72,4 +72,5 @@ All mesh data is the authored mesh (`obj.data`), never the modifier-evaluated on
   axes, so each shows the whole texture (what Add UV Map gives a mesh that had none). It is only a
   "possible": a plane's real UVs span the same square. A primitive's generated UVs show neither
   until edited, so a never-unwrapped cube looks unwrapped. A missing mesh is
-  `{"mesh","error":"no mesh"}`.
+  `{"mesh","error":"no mesh"}`. A mesh in edit mode (e.g. the UV Editing workspace) is
+  `{"mesh","error":"in edit mode"}`: Blender hides its UVs until it leaves edit mode.

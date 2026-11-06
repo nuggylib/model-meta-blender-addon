@@ -65,10 +65,18 @@ All mesh data is the authored mesh (`obj.data`), never the modifier-evaluated on
   disk whose filename ends with `<mesh>_<map>.png`, e.g. `wheel_hub.front.L_albedo.png`. Wiring is
   not checked. A missing mesh is `{"mesh","error":"no mesh"}`.
 - `get_mesh_uvs` with `"meshes":[{"mesh":"..."}]` → key `mesh_uvs`, one item per entry, in order:
-  `{"mesh","faces","uv_maps":[{"name","zero_area"},...]}`, one entry per UV map in Blender's order
-  (`[]` if the mesh has none). `zero_area` counts faces whose UVs enclose exactly no area
-  (extruding copies the source UVs, so the new faces get these). A face with no area in 3D counts
-  too. A primitive's generated UVs have none until edited, so a never-unwrapped cube looks
-  unwrapped. A missing mesh is
-  `{"mesh","error":"no mesh"}`. A mesh in edit mode (e.g. the UV Editing workspace) is
+  `{"mesh","faces","has_default_uv_map","uv_maps":[{"name","zero_area"},...]}`, one `uv_maps` entry
+  per UV map in Blender's order (`[]` if the mesh has none).
+  - `has_default_uv_map` is `true` when any UV map still holds more than half of the UV
+    coordinates an Add-menu primitive generates at its default settings: Cube, Plane, Grid, UV
+    Sphere, Ico Sphere, Cylinder, Cone, Torus. Monkey's hand-made UVs and Circle don't count.
+    Loop cuts, extrudes, insets, scaling and deleting a few faces keep a default; an unwrap or
+    projection replaces it. Add UV Map on a mesh with no UVs reads as default. Misses: a bevel
+    replaces the corner UVs, and a primitive added with non-default segments or subdivisions has a
+    different layout. Cube Projection of a flat plane or grid at the default size reproduces their
+    default exactly, so it reads as default. A joined mesh is default if any part is.
+  - `zero_area` counts faces whose UVs enclose exactly no area (extruding copies the source UVs, so
+    the new faces get these). A face with no area in 3D counts too.
+
+  A missing mesh is `{"mesh","error":"no mesh"}`. A mesh in edit mode (e.g. the UV Editing workspace) is
   `{"mesh","error":"in edit mode"}`: Blender hides its UVs until it leaves edit mode.

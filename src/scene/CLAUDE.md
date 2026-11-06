@@ -20,6 +20,10 @@ Reads Blender's scene and tracks when it may have changed. Read-only: nothing he
   - `uv_report` reads UVs with `foreach_get` but loops over every face corner in Python. Area is
     compared exactly, with no tolerance: forgotten-unwrap UVs are copied, not computed.
     It never reads the edit-mode BMesh; a mesh in edit mode gets the `in edit mode` error instead.
+  - The default layouts `has_default_uv_map` matches against are built once per session from
+    Blender's own `bmesh.ops.create_*` (in a free-standing BMesh) so they track the running
+    version. The torus has no `bmesh` builder, so `_torus_layout` mirrors `add_uvs()` in
+    `bl_operators/add_mesh_torus.py`. Coordinates are matched exactly, as float32.
   - `texture_report` checks a map's presence, not how it's wired: baked images usually sit in
     unlinked nodes. "Saved" means `source == "FILE"` and the resolved path is a file on disk, so an
     unsaved bake (a `GENERATED` image) fails. It reads each material's top-level node tree only,

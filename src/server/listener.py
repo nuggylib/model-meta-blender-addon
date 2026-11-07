@@ -31,10 +31,16 @@ def _textures_page(request):
     return "mesh_textures", len(targets), lambda i: meshes.texture_report(targets[i])
 
 
+def _uvs_page(request):
+    targets = request["meshes"]
+    return "mesh_uvs", len(targets), lambda i: meshes.uv_report(targets[i])
+
+
 _PAGED = {
     "get_meshes": (None, _meshes_page),
     "get_mesh_weights": (protocol.weight_targets_problem, _weights_page),
     "get_mesh_textures": (protocol.texture_targets_problem, _textures_page),
+    "get_mesh_uvs": (protocol.uv_targets_problem, _uvs_page),
 }
 
 
